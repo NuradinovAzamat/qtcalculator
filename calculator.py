@@ -25,7 +25,7 @@ class CalculatorWindow(QMainWindow):
             ["4", "5", "6", "*"],
             ["1", "2", "3", "-"],
             ["0", ".", "=", "+"],
-            ["←", "CE"],
+            ["C", "CE"],
         ]
 
         self.input_line = QLineEdit()
