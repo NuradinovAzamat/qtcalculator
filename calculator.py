@@ -19,7 +19,7 @@ class Calculator(QWidget):
             "4", "5", "6", "*",
             "1", "2", "3", "-",
             "0", ".", "=", "+",
-            "C"
+            "C", "⌫"
         ]
 
         self.grid_layout = QGridLayout()
@@ -38,20 +38,30 @@ class Calculator(QWidget):
                 col = 0
                 row += 1
 
+        self.result_display.setText("")
+        self.equation = ""
+
     def button_clicked(self):
         button = self.sender()
         text = button.text()
 
         if text == "=":
             try:
-                result = eval(self.result_display.text())
+                result = eval(self.equation)
                 self.result_display.setText(str(result))
+                self.equation = str(result)
             except Exception as e:
                 self.result_display.setText("Error")
         elif text == "C":
             self.result_display.setText("")
+            self.equation = ""
+        elif text == "⌫":
+            current_text = self.result_display.text()
+            self.result_display.setText(current_text[:-1])
+            self.equation = self.result_display.text()
         else:
-            self.result_display.setText(self.result_display.text() + text)
+            self.equation += text
+            self.result_display.setText(self.equation)
 
 
 if __name__ == "__main__":
