@@ -1,71 +1,71 @@
-import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLineEdit, QPushButton, QGridLayout
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLineEdit, QPushButton
+from PyQt5.QtCore import Qt
 
 
 class Calculator(QWidget):
     def __init__(self):
         super().__init__()
+
         self.setWindowTitle("Калькулятор")
-        self.setGeometry(200, 200, 300, 200)
+        self.setFixedSize(300, 400)
 
         self.layout = QVBoxLayout()
-        self.setLayout(self.layout)
-
-        self.result_display = QLineEdit()
-        self.layout.addWidget(self.result_display)
+        self.input_field = QLineEdit()
+        self.input_field.setReadOnly(True)
+        self.layout.addWidget(self.input_field)
 
         self.buttons = [
-            "7", "8", "9", "/",
-            "4", "5", "6", "*",
-            "1", "2", "3", "-",
-            "0", ".", "=", "+",
-            "C", "⌫"
+            '7', '8', '9', '/',
+            '4', '5', '6', '*',
+            '1', '2', '3', '-',
+            '0', '.', '=', '+',
+            'CA', 'Backspace'
         ]
 
-        self.grid_layout = QGridLayout()
-        self.layout.addLayout(self.grid_layout)
+        self.button_grid = QWidget()
+        self.button_grid.setLayout(self.layout)
 
-        row = 0
-        col = 0
+        self.button_grid_layout = QVBoxLayout()
 
-        for button_text in self.buttons:
+        button_row_layout = None
+        for index, button_text in enumerate(self.buttons):
+            if index % 4 == 0:
+                button_row_layout = QVBoxLayout()
+                self.button_grid_layout.addLayout(button_row_layout)
             button = QPushButton(button_text)
-            button.clicked.connect(self.button_clicked)
-            self.grid_layout.addWidget(button, row, col)
-            col += 1
+            button.clicked.connect(self.button_click)
+            button_row_layout.addWidget(button)
 
-            if col > 3:
-                col = 0
-                row += 1
+        self.layout.addLayout(self.button_grid_layout)
 
-        self.result_display.setText("")
+        self.setLayout(self.layout)
+
         self.equation = ""
 
-    def button_clicked(self):
+    def button_click(self):
         button = self.sender()
         text = button.text()
 
         if text == "=":
             try:
                 result = eval(self.equation)
-                self.result_display.setText(str(result))
+                self.input_field.setText(str(result))
                 self.equation = str(result)
-            except Exception as e:
-                self.result_display.setText("Error")
-        elif text == "C":
-            self.result_display.setText("")
+            except ZeroDivisionError:
+                self.input_field.setText("Ошибка: деление на ноль")
+                self.equation = ""
+        elif text == "CA":
+            self.input_field.clear()
             self.equation = ""
-        elif text == "⌫":
-            current_text = self.result_display.text()
-            self.result_display.setText(current_text[:-1])
-            self.equation = self.result_display.text()
+        elif text == "Backspace":
+            self.equation = self.equation[:-1]
         else:
             self.equation += text
-            self.result_display.setText(self.equation)
+            self.input_field.setText(self.equation)
 
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
+    app = QApplication([])
     calculator = Calculator()
     calculator.show()
-    sys.exit(app.exec_())
+    app.exec()
