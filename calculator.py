@@ -1,71 +1,93 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLineEdit, QPushButton, QGridLayout
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QLineEdit
 
 
-class Calculator(QWidget):
+class CalculatorWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Калькулятор")
-        self.setGeometry(200, 200, 300, 200)
+        self.setWindowTitle("Calculator")
+        self.setGeometry(200, 200, 300, 400)
+
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget)
 
         self.layout = QVBoxLayout()
-        self.setLayout(self.layout)
+        self.central_widget.setLayout(self.layout)
 
-        self.result_display = QLineEdit()
-        self.layout.addWidget(self.result_display)
+        self.equation_label = QLabel()
+        self.layout.addWidget(self.equation_label)
+
+        self.result_label = QLabel()
+        self.layout.addWidget(self.result_label)
 
         self.buttons = [
-            "7", "8", "9", "/",
-            "4", "5", "6", "*",
-            "1", "2", "3", "-",
-            "0", ".", "=", "+",
-            "C", "⌫"
+            ["7", "8", "9", "/"],
+            ["4", "5", "6", "*"],
+            ["1", "2", "3", "-"],
+            ["0", ".", "=", "+"],
+            ["←", "CE"],
         ]
 
-        self.grid_layout = QGridLayout()
-        self.layout.addLayout(self.grid_layout)
+        self.input_line = QLineEdit()
+        self.input_line.setReadOnly(True)
+        self.layout.addWidget(self.input_line)
 
-        row = 0
-        col = 0
+        self.buttons_layout = QVBoxLayout()
 
-        for button_text in self.buttons:
-            button = QPushButton(button_text)
-            button.clicked.connect(self.button_clicked)
-            self.grid_layout.addWidget(button, row, col)
-            col += 1
+        for row in self.buttons:
+            row_layout = QHBoxLayout()
+            for button_text in row:
+                button = QPushButton(button_text)
+                button.clicked.connect(self.handle_button_click)
+                row_layout.addWidget(button)
+            self.buttons_layout.addLayout(row_layout)
 
-            if col > 3:
-                col = 0
-                row += 1
+        self.layout.addLayout(self.buttons_layout)
 
-        self.result_display.setText("")
-        self.equation = ""
+        self.current_equation = ""
+        self.current_result = None
 
-    def button_clicked(self):
+    def handle_button_click(self):
         button = self.sender()
-        text = button.text()
+        button_text = button.text()
 
-        if text == "=":
-            try:
-                result = eval(self.equation)
-                self.result_display.setText(str(result))
-                self.equation = str(result)
-            except Exception as e:
-                self.result_display.setText("Error")
-        elif text == "C":
-            self.result_display.setText("")
-            self.equation = ""
-        elif text == "⌫":
-            current_text = self.result_display.text()
-            self.result_display.setText(current_text[:-1])
-            self.equation = self.result_display.text()
+        if button_text == "=":
+            self.calculate_result()
+        elif button_text == "C":
+            self.clear_input()
+        elif button_text == "CE":
+            self.clear_all()
         else:
-            self.equation += text
-            self.result_display.setText(self.equation)
+            self.add_to_input(button_text)
+
+    def add_to_input(self, text):
+        self.current_equation += text
+        self.input_line.setText(self.current_equation)
+
+    def calculate_result(self):
+        try:
+            self.current_result = eval(self.current_equation)
+            self.result_label.setText(f"Result: {self.current_result}")
+        except Exception as e:
+            self.result_label.setText("Error")
+            print(e)
+
+        self.current_equation = ""
+        self.input_line.clear()
+
+    def clear_input(self):
+        self.current_equation = self.current_equation[:-1]
+        self.input_line.setText(self.current_equation)
+
+    def clear_all(self):
+        self.current_equation = ""
+        self.current_result = None
+        self.input_line.clear()
+        self.result_label.clear()
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    calculator = Calculator()
-    calculator.show()
+    window = CalculatorWindow()
+    window.show()
     sys.exit(app.exec_())
